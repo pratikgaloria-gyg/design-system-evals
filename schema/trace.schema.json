@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/pratikgaloria-gyg/design-system-evals/schema/trace.schema.json",
+  "title": "AI-Enabled UX Delivery session trace",
+  "description": "Self-reported trace emitted by a Claude Design session (UDS-465, format v0.4). Legacy field names from v0.3 (compliant, turn_first_compliant) are accepted by the ingest normalizer, not by this schema.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["session_id", "project", "timestamp_source", "skill_version", "brief", "design_system", "coverage", "accessibility", "artifacts", "history", "efficiency"],
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "project": {"type": "string"},
+    "timestamp": {"type": ["string", "null"], "format": "date-time"},
+    "timestamp_source": {"type": "string", "enum": ["browser-clock", "user-provided", "unknown"]},
+    "skill_version": {"type": "string"},
+    "status": {"type": "string", "enum": ["in_progress", "closed", "abandoned"]},
+    "brief": {
+      "type": "object",
+      "required": ["summary", "source"],
+      "properties": {"summary": {"type": "string"}, "source": {"type": "string"}}
+    },
+    "design_system": {
+      "type": "object",
+      "required": ["components_used", "tokens_used", "components_invented_or_custom", "deviations"],
+      "properties": {
+        "components_used": {"type": "array", "items": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}, "variant": {"type": "string"}, "source": {"type": "string"}}}},
+        "tokens_used": {"type": "array", "items": {"type": "string"}},
+        "components_invented_or_custom": {"type": "array", "items": {"type": "object", "required": ["name"], "properties": {"name": {"type": "string"}, "reason": {"type": "string"}}}},
+        "deviations": {"type": "array", "items": {"type": "object", "required": ["what"], "properties": {"what": {"type": "string"}, "why": {"type": "string"}, "confidence": {"type": "string", "enum": ["aware", "unsure"]}}}}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["scenarios_considered", "scenarios_explicitly_skipped"],
+      "properties": {"scenarios_considered": {"type": "array", "items": {"type": "string"}}, "scenarios_explicitly_skipped": {"type": "array", "items": {"type": "string"}}}
+    },
+    "accessibility": {
+      "type": "object",
+      "required": ["contrast_checked", "keyboard_nav_checked", "aria_notes"],
+      "properties": {"contrast_checked": {"type": "boolean"}, "keyboard_nav_checked": {"type": "boolean"}, "aria_notes": {"type": "string"}}
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["files_touched", "output_ref"],
+      "properties": {"files_touched": {"type": "array", "items": {"type": "string"}}, "output_ref": {"type": "string"}}
+    },
+    "self_assessed_uncertainty": {"type": "string", "enum": ["low", "medium", "high"]},
+    "history": {
+      "type": "array",
+      "items": {"type": "object", "required": ["turn", "change", "self_assessed_compliant"], "properties": {"turn": {"type": "integer", "minimum": 1}, "change": {"type": "string"}, "self_assessed_compliant": {"type": "boolean"}}}
+    },
+    "efficiency": {
+      "type": "object",
+      "required": ["total_turns", "turn_first_self_assessed_compliant", "user_corrections_required"],
+      "properties": {"total_turns": {"type": "integer"}, "turn_first_self_assessed_compliant": {"type": ["integer", "null"]}, "user_corrections_required": {"type": "integer"}}
+    }
+  }
+}

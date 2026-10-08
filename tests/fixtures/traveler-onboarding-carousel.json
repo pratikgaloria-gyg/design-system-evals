@@ -1,0 +1,83 @@
+{
+  "session_id": "traveler-onboarding-carousel-session",
+  "project": "Traveler onboarding carousel",
+  "timestamp": "2026-10-06T14:44:40.356Z",
+  "timestamp_source": "browser-clock",
+  "skill_version": "ai-ux-delivery-trace-format-test@0.3.0",
+  "brief": {
+    "summary": "3-step onboarding carousel for new travelers: step indicator dots, illustration area, headline, short body copy, Next/Skip actions",
+    "source": "pasted in chat"
+  },
+  "design_system": {
+    "components_used": [
+      { "name": "CButton", "variant": "filled / large (Next, Get started)", "source": "compass-lib" },
+      { "name": "CButton", "variant": "text / medium (Skip)", "source": "compass-lib" }
+    ],
+    "tokens_used": [
+      "--background-secondary", "--surface-primary", "--surface-secondary",
+      "--label-primary", "--label-secondary", "--interactive-primary",
+      "--interactive-primary-hovered", "--separator-secondary",
+      "--shadow-elevation-32 (with hard-coded fallback)",
+      ".t-heading-md", ".t-text-regular-sm", ".t-text-regular-xs"
+    ],
+    "components_invented_or_custom": [
+      { "name": "Step indicator (dots + 'n of 3' label)", "reason": "Compass has no stepper/pagination-dots component; built from plain buttons and spans" },
+      { "name": "Carousel container / card shell", "reason": "CCarousel is not recreated in the bound design system; single-step state machine built instead" },
+      { "name": "Illustration area", "reason": "No illustration set in Compass; uses Compass line icons (pin-on-map, calendar-check, tickets) on a surface-secondary tile" }
+    ],
+    "deviations": [
+      { "what": "Dot sizes (8px / 24px pill), 44px hit-area wrappers, 112px icon size, card padding and some gaps use hard-coded px", "why": "No matching spacing or size tokens used", "confidence": "unsure" },
+      { "what": "Illustration icons render in their default dark color, not the interactive-primary blue", "why": "The CSS-mask recolor approach failed (CORS on the serve origin); <img> ignores currentColor", "confidence": "aware" },
+      { "what": "Marketing-style copy ('Your next adventure starts here', etc.)", "why": "User asked for more eye-catching copy; Compass voice is plain and factual", "confidence": "aware" },
+      { "what": "Icons copied into local assets/icons/ instead of loaded through CIcon", "why": "The CIcon component resolved to a path that doesn't exist in this project", "confidence": "aware" },
+      { "what": "Skip is a CButton text variant, which renders underlined", "why": "Used the component as-is", "confidence": "unsure" }
+    ]
+  },
+  "coverage": {
+    "scenarios_considered": [
+      "mobile-width card (max 390px)",
+      "last step hides Skip and relabels Next",
+      "tap target size (44px for dots and Skip)",
+      "screen reader labelling (region, group, aria-current, aria-live)",
+      "text wrapping (balance/pretty)"
+    ],
+    "scenarios_explicitly_skipped": [
+      "RTL / localization and long strings",
+      "reduced-motion (dot width transition is not gated)",
+      "swipe gestures",
+      "desktop / tablet breakpoints",
+      "dark theme",
+      "persisting completion state",
+      "real illustration artwork (icons used as placeholder)"
+    ]
+  },
+  "accessibility": {
+    "contrast_checked": false,
+    "keyboard_nav_checked": false,
+    "aria_notes": "Container has role=region and aria-roledescription=carousel. Dots are buttons with aria-label 'Go to step N' and aria-current=step. The dots group is labelled 'Step N of 3'. Text block uses aria-live=polite. Illustration is aria-hidden. Contrast and keyboard behaviour were not explicitly measured; only token-based colors were used. Next/Get started hold keyboard focus via the native button."
+  },
+  "artifacts": {
+    "files_touched": [
+      "Onboarding Carousel.dc.html",
+      "assets/icons/pin-on-map.svg",
+      "assets/icons/calendar-check.svg",
+      "assets/icons/tickets.svg"
+    ],
+    "output_ref": "Onboarding Carousel.dc.html (opened in project preview)"
+  },
+  "self_assessed_uncertainty": "medium",
+  "history": [
+    { "turn": 1, "change": "Initial build: card with CButton Next/Skip, dots, dashed placeholder, headline and body; hard-coded hex colors and px type sizes", "compliant": false },
+    { "turn": 2, "change": "Fixed verifier findings: swapped hex for Compass color tokens, applied .t-* type classes, made Next full-width", "compliant": true },
+    { "turn": 3, "change": "Step indicator moved to the top with an 'n of 3' label (user request)", "compliant": true },
+    { "turn": 4, "change": "Dots and Skip enlarged to 44px hit areas (verifier); first attempt distorted the dots", "compliant": false },
+    { "turn": 5, "change": "Dots restored to circles plus a pill, with a separate 44px hit-area wrapper; placeholder replaced with an icon (user request)", "compliant": false },
+    { "turn": 6, "change": "Icon fixed over three attempts (CIcon path, CSS mask, then plain <img> with static per-step sources); icons render but are not recolored", "compliant": true },
+    { "turn": 7, "change": "Copy rewritten to be more engaging (user request)", "compliant": true }
+  ],
+  "efficiency": {
+    "total_turns": 7,
+    "turn_first_compliant": 2,
+    "user_corrections_required": 3
+  }
+}
