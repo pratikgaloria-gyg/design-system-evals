@@ -20,10 +20,12 @@ TypeScript, zero runtime dependencies (Node ≥ 20 `fetch`, `node:test`). Dev de
 | `src/schema.ts` | Small JSON-Schema validator (type/required/properties/items/enum). Swap for ajv if it outgrows this. |
 | `src/trace.ts` | Normalise legacy v0.3 field names, map a trace to a Braintrust event. |
 | `src/confluence.ts` | List session pages under the pilot parent, extract the JSON code block (ADF or storage format). |
+| `src/drive.ts` | Google Drive v3 read client (service-account JWT auth, read-only scope). |
+| `src/output.ts` | Fetch a session's `artifacts.output_files` from Drive; size caps, binary handling, never throws per file. |
 | `src/braintrust.ts` | `POST /v1/project_logs/{project_id}/insert` on the EU data plane. |
 | `src/renderPage.ts` | Render a trace as a Confluence page body (readable sections + JSON block). |
 | `src/cli.ts` | `validate`, `render`, `push`, `run`. |
-| `skills/ai-ux-delivery-trace/SKILL.md` | The user-attached Claude Design skill (v0.5) that writes the page. |
+| `skills/ai-ux-delivery-trace/SKILL.md` | The user-attached Claude Design skill (v0.6) that uploads the output to Drive and writes the page. |
 | `tests/` | Offline tests against the fixture trace(s). |
 | `.github/workflows/ingest.yml` | Manual dispatch now; cron sweep in Phase 3. |
 
@@ -35,7 +37,14 @@ TypeScript, zero runtime dependencies (Node ≥ 20 `fetch`, `node:test`). Dev de
 3. The readable part is rendered from the JSON (`renderPage.ts`). Never hand-edit it; fix the JSON and re-render.
 4. Braintrust event `id` = `session_id`, so re-running is an upsert. Duplicate `session_id`s across pages get a
    `__p<pageId>` suffix and a warning — the skill must mint unique IDs.
-5. No `scores` are written. `self_assessed_compliant` is the model's belief, not a compliance score (UDS-465).
+5. The final output files go to the shared Drive folder `1tFYv_kTQ4ev8DsUk8UJITStahWYDFj4B`, one subfolder per
+   `session_id`, and are listed in `artifacts.output_files` (`name`, `drive_file_id`, `mime`). `ingest run` downloads
+   them with a read-only service account and writes `output.rendered_html` (main `*.dc.html`, byte-for-byte) and
+   `output.assets[]` (`name`, `content_type`, `size`, `encoding` utf8|base64, `content`) onto the event. Files over the
+   cap (3 MB text / 1 MB binary, `OUTPUT_MAX_*_BYTES`) are skipped and listed in `output.output_skipped`. Missing
+   credentials or a failed fetch never block ingest. Sessions closed with skill < 0.6 have no `output_files`, so they
+   get no rendered output.
+6. No `scores` are written. `self_assessed_compliant` is the model's belief, not a compliance score (UDS-465).
 
 Braintrust mapping: `input` = `brief`, `output` = design_system / coverage / accessibility / artifacts / history,
 `metadata` = flat fields for filtering (status, turns, corrections, deviation counts, skill version, Confluence page).
@@ -44,7 +53,8 @@ Braintrust mapping: `input` = `brief`, `output` = design_system / coverage / acc
 
 ```bash
 npm install
-cp .env.example .env   # fill in BRAINTRUST_API_KEY, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN
+cp .env.example .env   # fill in BRAINTRUST_API_KEY, ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN,
+                       # GOOGLE_APPLICATION_CREDENTIALS (path to the service-account key, kept outside the repo)
 npm test
 npm run typecheck
 ```

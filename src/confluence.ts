@@ -28,7 +28,7 @@ export class ConfluenceClient {
   async *descendants(parentId: string): AsyncGenerator<{ id: string; title: string }> {
     let cursor: string | undefined;
     for (;;) {
-      const params: Record<string, string> = { limit: "100", depth: "all" };
+      const params: Record<string, string> = { limit: "100", depth: "5" };
       if (cursor) params.cursor = cursor;
       const data = await this.get<{ results: { id: string; title: string; type: string }[]; _links?: { next?: string } }>(
         `/api/v2/pages/${parentId}/descendants`, params);

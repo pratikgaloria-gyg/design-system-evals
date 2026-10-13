@@ -1,0 +1,32 @@
+name: ingest
+
+# Manual dispatch for now; cron sweep arrives in Phase 3.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (print events, don't write to Braintrust)"
+        type: boolean
+        default: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Ingest
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT_ID: ${{ secrets.BRAINTRUST_PROJECT_ID }}
+          CONFLUENCE_BASE_URL: https://getyourguide.atlassian.net/wiki
+          CONFLUENCE_PARENT_PAGE_ID: "4926603735"
+          ATLASSIAN_EMAIL: ${{ secrets.ATLASSIAN_EMAIL }}
+          ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: npm run ingest -- run ${{ inputs.dry_run && '--dry-run' || '' }}

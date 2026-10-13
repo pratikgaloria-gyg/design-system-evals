@@ -1,1 +1,9 @@
+node_modules/
+.env
+.env.*
+!.env.example
 *.env
+# service account keys must never be committed
+sa.json
+service-account*.json
+*-credentials.json

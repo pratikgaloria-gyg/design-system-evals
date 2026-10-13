@@ -1,4 +1,4 @@
-/** Trace format v0.4 (UDS-465). Keep in sync with schema/trace.schema.json. */
+/** Trace format v0.5 (v0.4 + optional artifacts.output_files, UDS-525). Keep in sync with schema/trace.schema.json. */
 export type TimestampSource = "browser-clock" | "user-provided" | "unknown";
 export type Confidence = "aware" | "unsure";
 export type SessionStatus = "in_progress" | "closed" | "abandoned";
@@ -19,7 +19,7 @@ export interface Trace {
   };
   coverage: { scenarios_considered: string[]; scenarios_explicitly_skipped: string[] };
   accessibility: { contrast_checked: boolean; keyboard_nav_checked: boolean; aria_notes: string };
-  artifacts: { files_touched: string[]; output_ref: string };
+  artifacts: { files_touched: string[]; output_ref: string; output_files?: { name: string; drive_file_id: string; mime?: string }[] };
   self_assessed_uncertainty?: "low" | "medium" | "high";
   history: { turn: number; change: string; self_assessed_compliant: boolean }[];
   efficiency: { total_turns: number; turn_first_self_assessed_compliant: number | null; user_corrections_required: number };

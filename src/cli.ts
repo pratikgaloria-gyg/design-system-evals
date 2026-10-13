@@ -11,8 +11,10 @@ import { parseArgs } from "node:util";
 import { BraintrustClient } from "./braintrust.js";
 import { ConfluenceClient, extractTraceJson } from "./confluence.js";
 import { renderPage } from "./renderPage.js";
+import { DriveClient } from "./drive.js";
+import { captureOutput, limitsFromEnv, type OutputCapture } from "./output.js";
 import { normalize, toBraintrustEvent, validate } from "./trace.js";
-import type { BraintrustEvent } from "./types.js";
+import type { BraintrustEvent, Trace } from "./types.js";
 
 function loadDotEnv() {
   if (!existsSync(".env")) return;
@@ -24,6 +26,18 @@ function loadDotEnv() {
 
 const readJson = (p: string) => JSON.parse(readFileSync(p, "utf8"));
 const log = (s: string) => process.stderr.write(s + "\n");
+
+/** Fetch the session's output files from Drive (UDS-525). Never throws; no creds or no files = no capture. */
+let driveClient: DriveClient | null | undefined;
+async function captureFor(t: Trace): Promise<OutputCapture | undefined> {
+  const files = t.artifacts.output_files;
+  if (!files?.length) return undefined;
+  if (driveClient === undefined) driveClient = DriveClient.fromEnv();
+  if (!driveClient) { log(`warning: ${t.session_id} lists output_files but no Google credentials are set; skipping output capture`); return undefined; }
+  const cap = await captureOutput(files, driveClient, limitsFromEnv());
+  for (const s of cap.skipped) log(`output skip: ${t.session_id}: ${s.name}: ${s.reason}`);
+  return cap;
+}
 
 async function cmdValidate(path: string) {
   const t = normalize(readJson(path));
@@ -41,7 +55,7 @@ async function cmdPush(path: string, dryRun: boolean) {
   const t = normalize(readJson(path));
   const errs = validate(t);
   if (errs.length) { log(errs.join("\n")); return 1; }
-  const ev = toBraintrustEvent(t, t.session_id, { kind: "local-file", path });
+  const ev = toBraintrustEvent(t, t.session_id, { kind: "local-file", path }, await captureFor(t));
   if (dryRun) { console.log(JSON.stringify(ev, null, 2)); return 0; }
   const bt = new BraintrustClient();
   console.log(JSON.stringify(await bt.insertLogs([ev])));
@@ -75,7 +89,7 @@ async function cmdRun(opts: { dryRun: boolean; parent?: string; pages: string[] 
     } else seen.set(sid, page.id);
     events.push(toBraintrustEvent(t, eventId, {
       kind: "confluence", page_id: page.id, page_url: page.url, page_version: page.version, page_last_modified: page.lastModified,
-    }));
+    }, await captureFor(t)));
   }
   for (const [title, why] of skipped) log(`skip: ${title}: ${why}`);
   log(`${events.length} trace(s) ready, ${skipped.length} page(s) skipped`);

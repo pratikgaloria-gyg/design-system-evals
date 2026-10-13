@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/pratikgaloria-gyg/design-system-evals/schema/trace.schema.json",
   "title": "AI-Enabled UX Delivery session trace",
-  "description": "Self-reported trace emitted by a Claude Design session (UDS-465, format v0.4). Legacy field names from v0.3 (compliant, turn_first_compliant) are accepted by the ingest normalizer, not by this schema.",
+  "description": "Self-reported trace emitted by a Claude Design session (UDS-465, format v0.5 = v0.4 plus optional artifacts.output_files, UDS-525). Legacy field names from v0.3 (compliant, turn_first_compliant) are accepted by the ingest normalizer, not by this schema.",
   "type": "object",
   "additionalProperties": true,
   "required": ["session_id", "project", "timestamp_source", "skill_version", "brief", "design_system", "coverage", "accessibility", "artifacts", "history", "efficiency"],
@@ -41,7 +41,11 @@
     "artifacts": {
       "type": "object",
       "required": ["files_touched", "output_ref"],
-      "properties": {"files_touched": {"type": "array", "items": {"type": "string"}}, "output_ref": {"type": "string"}}
+      "properties": {
+        "files_touched": {"type": "array", "items": {"type": "string"}},
+        "output_ref": {"type": "string"},
+        "output_files": {"type": "array", "items": {"type": "object", "required": ["name", "drive_file_id"], "properties": {"name": {"type": "string", "minLength": 1}, "drive_file_id": {"type": "string", "minLength": 1}, "mime": {"type": "string"}}}}
+      }
     },
     "self_assessed_uncertainty": {"type": "string", "enum": ["low", "medium", "high"]},
     "history": {

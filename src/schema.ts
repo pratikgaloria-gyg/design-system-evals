@@ -9,7 +9,7 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 export const SCHEMA_PATH = join(here, "..", "schema", "trace.schema.json");
-export const SCHEMA_VERSION = "0.4";
+export const SCHEMA_VERSION = "0.5";
 
 type Schema = {
   type?: string | string[];

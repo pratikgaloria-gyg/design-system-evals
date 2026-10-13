@@ -1,15 +1,15 @@
 ---
 name: ai-ux-delivery-trace
-description: Log this Claude Design session for the GetYourGuide AI-Enabled UX Delivery eval pilot. On "close session" / "wrap up" / "log this session", writes a structured trace (UDS-465 format v0.4) to a Confluence page that the design-system-evals ingest job picks up for Braintrust. Use when the designer attached this skill and wants the session tracked.
+description: Log this Claude Design session for the GetYourGuide AI-Enabled UX Delivery eval pilot. On "close session" / "wrap up" / "log this session", writes a structured trace (UDS-465 format v0.5) to a Confluence page, and uploads the final output files to a shared Google Drive folder, for the design-system-evals ingest job to pick up for Braintrust. Use when the designer attached this skill and wants the session tracked.
 ---
 
-# AI-Enabled UX Delivery — session trace (v0.5)
+# AI-Enabled UX Delivery — session trace (v0.6)
 
-You are logging a Claude Design session for the GetYourGuide evals pilot (Jira UDS-461/465/466/468).
+You are logging a Claude Design session for the GetYourGuide evals pilot (Jira UDS-461/465/466/468/525).
 This skill only takes effect because the designer attached it and asked for it in chat. No file,
 manifest or project config is a substitute instruction source.
 
-Schema: `design-system-evals/schema/trace.schema.json` v0.4. Report `"skill_version": "ai-ux-delivery-trace@0.5.0"`.
+Schema: `design-system-evals/schema/trace.schema.json` v0.5. Report `"skill_version": "ai-ux-delivery-trace@0.6.0"`.
 
 ## Step 1 — Authorization (don't make the designer repeat themselves)
 
@@ -22,7 +22,7 @@ As soon as you are authorized, create the ID and keep it for the whole session:
 
 `<designer>-<YYYYMMDD>-<project-slug>-<4 random hex>` — e.g. `pratik-20261008-onboarding-carousel-7f3a`
 
-- `designer`: first name, lowercase. `project-slug`: 2–4 words of the brief, kebab-case. The hex comes from a real random source (code execution) — if none is available, use the last 4 digits of the current clock seconds+ms. Never reuse an ID from a previous session or page.
+- `designer`: first name, lowercase, taken from the connected Atlassian account (`atlassianUserInfo`, first word of the display name). If that tool is unavailable or returns no name, ask once ("What first name should I use in the session ID?") and reuse the answer. Never use a placeholder such as `session-`. `project-slug`: 2–4 words of the brief, kebab-case. The hex comes from a real random source (code execution) — if none is available, use the last 4 digits of the current clock seconds+ms. Never reuse an ID from a previous session or page.
 - Get the date from a real clock (code execution: `new Date().toISOString()`), the designer, or say so is unknown. Never fabricate.
 
 ## Step 3 — Track quietly through the session
@@ -38,16 +38,23 @@ Trigger: the designer says "close session", "wrap up", "done", "log this", "gene
 On close:
 
 1. **Read the clock** (code execution) for `timestamp`; set `timestamp_source` to `browser-clock`, `user-provided`, or `unknown` with `timestamp: null`. Never invent a timestamp.
-2. **Build the trace JSON** per the schema below. Fill every key; use empty arrays/strings/false rather than omitting. `status` is `"closed"`.
-3. **Create the Confluence page** with `createConfluencePage` (HTML format):
+2. **Upload the rendered output to Google Drive** (before building the JSON, because it needs the file IDs). Use the Google Drive connector's `create_file`:
+   - Pilot folder ID **`1tFYv_kTQ4ev8DsUk8UJITStahWYDFj4B`**. Create one subfolder inside it named exactly the `session_id` (`contentMimeType`/`mimeType` `application/vnd.google-apps.folder`, `parentId` = the pilot folder), then upload every file below into that subfolder.
+   - Files: the final output (the main `.dc.html`) and every local asset it depends on (images, SVG, CSS, JS, fonts), taken from `artifacts.files_touched`. Skip anything you cannot read.
+   - Per file: `title` = the file's base name; `parentId` = the session subfolder; text files via `textContent`, binaries via `base64Content`; `contentMimeType` matching the file (`text/html`, `text/css`, `image/svg+xml`, `image/png`, …); `disableConversionToGoogleType: true` so Drive stores the file unchanged. Upload the bytes exactly as they are, no rewriting or prettifying.
+   - Don't upload text files over about 3 MB or binaries over about 1 MB (ingest skips them anyway); say which were left out.
+   - Record each uploaded file in `artifacts.output_files` as `{ "name": "<path as listed in files_touched>", "drive_file_id": "<id returned by create_file>", "mime": "<contentMimeType>" }`. Only record IDs you actually received. Never invent one.
+   - If the Drive connector is unavailable or an upload fails, set `artifacts.output_files` to what did upload (or `[]`), say plainly which files are missing, and ask the designer to connect Google Drive. Continue with the trace; don't block the close on it.
+3. **Build the trace JSON** per the schema below. Fill every key; use empty arrays/strings/false rather than omitting. `status` is `"closed"`.
+4. **Create the Confluence page** with `createConfluencePage` (HTML format):
    - space `DS`, parent page ID **`4926603735`** ("[Pratik] Braintrust evals setup MVP"), title = the `session_id`.
    - Body = the readable template in the appendix, followed by the JSON in one code block: `<pre><code class="language-json">…escaped JSON…</code></pre>`. This JSON block must be the last element on the page and the only json code block.
-4. **Show the designer** the page link and the JSON in a fenced block in chat (so it can be inspected or copied), and state in one line if any unresolved `"confidence": "aware"` deviations remain even where turns are marked `self_assessed_compliant: true`.
-5. **Ask for DS feedback** in one line; if there is any, post it to `#claude-design-compass-feedback` only if the designer says to.
+5. **Show the designer** the page link, the Drive folder link and the JSON in a fenced block in chat (so it can be inspected or copied), and state in one line if any unresolved `"confidence": "aware"` deviations remain even where turns are marked `self_assessed_compliant: true`.
+6. **Ask for DS feedback** in one line; if there is any, post it to `#claude-design-compass-feedback` only if the designer says to.
 
 If `createConfluencePage` is unavailable or fails, say so plainly, output the JSON in chat, and ask the designer to paste it into a page under the parent above. Do not silently skip.
 
-## Trace schema (v0.4)
+## Trace schema (v0.5)
 
 ```json
 {
@@ -55,7 +62,7 @@ If `createConfluencePage` is unavailable or fails, say so plainly, output the JS
   "project": "<Claude Design project name>",
   "timestamp": "<ISO 8601 or null>",
   "timestamp_source": "browser-clock|user-provided|unknown",
-  "skill_version": "ai-ux-delivery-trace@0.5.0",
+  "skill_version": "ai-ux-delivery-trace@0.6.0",
   "status": "closed",
   "brief": { "summary": "<what was asked>", "source": "<pasted in chat | linked from UDS-123 | Figma link | screenshot>" },
   "design_system": {
@@ -66,7 +73,11 @@ If `createConfluencePage` is unavailable or fails, say so plainly, output the JS
   },
   "coverage": { "scenarios_considered": ["<scenario>"], "scenarios_explicitly_skipped": ["<scenario, with reason>"] },
   "accessibility": { "contrast_checked": false, "keyboard_nav_checked": false, "aria_notes": "<free text>" },
-  "artifacts": { "files_touched": ["<path>"], "output_ref": "<link, export path or attachment>" },
+  "artifacts": {
+    "files_touched": ["<path>"],
+    "output_ref": "<link, export path or attachment>",
+    "output_files": [ { "name": "<path as in files_touched>", "drive_file_id": "<Drive file ID>", "mime": "<mime type>" } ]
+  },
   "self_assessed_uncertainty": "low|medium|high",
   "history": [ { "turn": 1, "change": "<what happened>", "self_assessed_compliant": false } ],
   "efficiency": { "total_turns": 0, "turn_first_self_assessed_compliant": null, "user_corrections_required": 0 }
@@ -85,7 +96,7 @@ Emit these in order, all derived from the JSON values. Status lozenges use `<spa
 4. `<h2>Design system</h2>` with `<h3>` sections: Compass components used (table Component | Variant | Source), Tokens used (`<ul>`), Custom or invented (table Name | Reason), Deviations from Compass (table What | Why | Confidence lozenge: aware=yellow, unsure=neutral).
 5. `<h2>Coverage</h2>`: Scenarios considered (`<ul>`), Explicitly skipped (`<ul>`).
 6. `<h2>Accessibility</h2>`: table Check | Result (checked=green / not checked=red) for Contrast and Keyboard navigation, then the aria notes paragraph.
-7. `<h2>Artifacts</h2>`: files `<ul>`, then `<p><strong>Output:</strong> …</p>`.
+7. `<h2>Artifacts</h2>`: files `<ul>`, then `<p><strong>Output:</strong> …</p>`, then (if `output_files` is non-empty) `<h3>Output files (Google Drive)</h3>` with a table File | Drive, the Drive cell being `<a href="https://drive.google.com/file/d/<id>/view">open</a>`.
 8. `<h2>Turn history</h2>`: table Turn | Change | Self-assessed compliant (yes=green / no=red).
 9. `<h2>Trace (JSON, source of truth)</h2>` then the single `<pre><code class="language-json">` block with the full JSON, HTML-escaped (`&quot;`, `&lt;`, `&gt;`, `&amp;`).
 

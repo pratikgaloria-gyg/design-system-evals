@@ -1,5 +1,6 @@
 /** Trace normalisation and mapping to a Braintrust log event. */
 import type { BraintrustEvent, Trace } from "./types.js";
+import type { OutputCapture } from "./output.js";
 import { SCHEMA_VERSION } from "./schema.js";
 export { validate } from "./schema.js";
 
@@ -37,7 +38,9 @@ export function awareDeviations(t: Trace): number {
  * No `scores` on purpose: self_assessed_compliant must never be read as the compliance
  * score (UDS-465). Scoring happens in Braintrust once UDS-467 lands.
  */
-export function toBraintrustEvent(t: Trace, eventId: string, source: Record<string, unknown> = {}): BraintrustEvent {
+export function toBraintrustEvent(
+  t: Trace, eventId: string, source: Record<string, unknown> = {}, capture?: OutputCapture,
+): BraintrustEvent {
   const eff = t.efficiency;
   return {
     id: eventId,
@@ -48,6 +51,10 @@ export function toBraintrustEvent(t: Trace, eventId: string, source: Record<stri
       accessibility: t.accessibility,
       artifacts: t.artifacts,
       history: t.history,
+      // Rendered output (UDS-525), present only when output files were fetched from Drive.
+      ...(capture?.rendered_html !== undefined && { rendered_html: capture.rendered_html }),
+      ...(capture && capture.assets.length > 0 && { assets: capture.assets }),
+      ...(capture && capture.skipped.length > 0 && { output_skipped: capture.skipped }),
     },
     metadata: {
       schema_version: SCHEMA_VERSION,
@@ -64,6 +71,7 @@ export function toBraintrustEvent(t: Trace, eventId: string, source: Record<stri
       deviations_total: t.design_system.deviations.length,
       deviations_aware: awareDeviations(t),
       components_used: [...new Set(t.design_system.components_used.map((c) => c.name))].sort(),
+      has_rendered_html: capture?.rendered_html !== undefined,
       source,
     },
     tags: ["self-reported", `skill:${t.skill_version}`, `status:${t.status}`],

@@ -68,6 +68,12 @@ export function renderPage(input: unknown): string {
     "<h2>Artifacts</h2>",
     ul(art.files_touched),
     `<p><strong>Output:</strong> ${esc(art.output_ref)}</p>`,
+    ...(art.output_files?.length
+      ? [
+          "<h3>Output files (Google Drive)</h3>",
+          table(["File", "Drive"], art.output_files.map((f) => [esc(f.name), `<a href="https://drive.google.com/file/d/${encodeURIComponent(f.drive_file_id)}/view">open</a>`])),
+        ]
+      : []),
     "<h2>Turn history</h2>",
     table(["Turn", "Change", "Self-assessed compliant"], t.history.map((h) => [String(h.turn), esc(h.change), h.self_assessed_compliant ? lozenge("yes", "green") : lozenge("no", "red")])),
     "<h2>Trace (JSON, source of truth)</h2>",
