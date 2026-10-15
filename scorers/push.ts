@@ -9,6 +9,8 @@ import braintrust from "braintrust";
 import { z } from "zod";
 import { a11yHygiene } from "./a11yHygiene.js";
 import { tokenCompliance } from "./tokenCompliance.js";
+import { parseManifest } from "./tokenManifest.js";
+import manifestJson from "./tokens.manifest.json" with { type: "json" };
 
 // This module is evaluated twice: locally at push time (BRAINTRUST_PROJECT_ID set by `npm run push:scorers`,
 // which refuses to run without it), and again inside Braintrust's runtime whenever the scorer runs, where
@@ -24,12 +26,14 @@ project.scorers.create({
   handler: async ({ output }) => a11yHygiene({ output }),
 });
 
-// TODO(UDS-528): pass the versioned compass-pcl `tokens.json` here once it is exported (shared epic prerequisite).
-// Until then any var(--...) and `.t-*` class counts as compliant and `token_list_version` is null.
+// The manifest is generated from the compass repo by `npm run build:tokens -- <compass checkout>` and committed, so it is
+// bundled into the pushed scorer. Re-run, commit and re-push when compass tokens change; `token_list_version` in each score
+// says which version was used. When a shared token spec exists, write a new adapter in adapters/; this file stays as is.
+const manifest = parseManifest(manifestJson);
 project.scorers.create({
   name: "token_compliance",
   slug: "token-compliance",
   description: "Share of colour, typography and spacing values in inline styles that use Compass tokens (UDS-528). Null when there is nothing to score.",
   parameters: z.object({ output: z.any() }),
-  handler: async ({ output }) => tokenCompliance({ output }),
+  handler: async ({ output }) => tokenCompliance({ output }, manifest),
 });

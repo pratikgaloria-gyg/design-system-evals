@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "scorers", "tests"]
+  "include": ["src", "scorers", "adapters", "tests"]
 }

@@ -1,0 +1,19 @@
+@mixin font-style-new($style, $base-font-size: typography-tokens.$font-base-size) {
+  @if $style == "heading-md" {
+    font-size: typography-tokens.get-font-value(typography-tokens.$font-size-28, $base-font-size);
+    line-height: typography-tokens.$font-line-height-sm;
+    letter-spacing: normal;
+    font-weight: typography-tokens.$font-weight-750;
+    font-variation-settings: "opsz" typography-tokens.$font-optical-size-xl;
+  } // ----- Text / Regular -----
+  @else if $style == "text-regular-sm" {
+    font-size: typography-tokens.get-font-value(typography-tokens.$font-size-14, $base-font-size);
+    line-height: typography-tokens.$font-line-height-lg;
+    font-weight: typography-tokens.$font-weight-425;
+  }
+  @else if $style == "text-link-regular-sm" {
+    @include font-style-new("text-regular-sm", $base-font-size);
+
+    text-decoration: underline;
+  }
+}

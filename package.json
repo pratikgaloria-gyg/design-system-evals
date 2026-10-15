@@ -11,6 +11,7 @@
     "ingest": "tsx src/cli.ts",
     "test": "tsx --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
+    "build:tokens": "tsx adapters/build-token-manifest.ts",
     "push:scorers": "set -a; [ -f .env ] && . ./.env; set +a; [ -n \"$BRAINTRUST_PROJECT_ID\" ] || { echo 'Missing BRAINTRUST_PROJECT_ID' >&2; exit 1; }; bt functions push scorers/push.ts --if-exists replace"
   },
   "devDependencies": {

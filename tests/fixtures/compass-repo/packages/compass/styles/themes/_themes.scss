@@ -1,0 +1,23 @@
+@use "../variables/palette";
+@use "../variables/palette-new" as palette-new;
+
+$theme-tokens: (
+  label-primary: (
+    light: palette.$blue-900,
+    dark: palette.$other-white,
+  ),
+  interactive-tertiary-hovered: (
+    light: rgba(palette.$grey-200, 0.5),
+    dark: palette.$grey-200,
+  ),
+);
+$theme-tokens-low-risk: (
+  label-primary: (
+    light: palette-new.$navy-alpha-a100,
+    dark: palette-new.$white-a100,
+  ),
+  filter-default: (
+    light: palette-new.$navy-alpha-a10,
+    dark: palette-new.$white-a100,
+  ),
+);

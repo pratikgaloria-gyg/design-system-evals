@@ -1,0 +1,6 @@
+@use "./palette-new" as palette;
+:root {
+  --effect-elevation-xs: 0px 1px 1px 0px #{palette.$navy-alpha-a10};
+  --effect-elevation-sm:
+    0px 1px 2px 0px #{palette.$navy-alpha-a10}, 0px 1px 3px 0px #{palette.$navy-alpha-a10};
+}

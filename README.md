@@ -84,3 +84,13 @@ npm run ingest -- run --page 4927390328   # one page
 - [ ] Phase 2 — `run` ingests all pilot pages; skill v0.5 writes the page on close
 - [ ] Phase 3 — cron sweep, service token, idle/abandoned tagging, alerts
 - [ ] Phase 4 — UDS-467 verifier alongside the self-report
+
+## token_compliance token manifest (UDS-528)
+
+`scorers/tokenCompliance.ts` only reads a `TokenManifest` (`scorers/tokenManifest.ts`): named tokens with resolved values, plus composite styles (typography) matched by value. Adapters in `adapters/` produce it from the current token source; swapping the source means writing a new adapter, not changing the scorer.
+
+```
+npm run build:tokens -- <path-to-compass-repo>   # writes scorers/tokens.manifest.json (commit it, then npm run push:scorers)
+```
+
+Current adapter: `adapters/compassRepo.ts` (getyourguide/compass, `packages/compass/styles`). Not covered: palette primitives (SCSS-only there), radius, legacy typography, and anything the Claude Design project generates itself (e.g. `--palette-*`).
