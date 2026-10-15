@@ -4,15 +4,23 @@
   "private": true,
   "type": "module",
   "description": "Ingest self-reported Claude Design traces from Confluence into Braintrust (AI-Enabled UX Delivery pilot, UDS-468)",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "ingest": "tsx src/cli.ts",
     "test": "tsx --test tests/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "push:scorers": "set -a; [ -f .env ] && . ./.env; set +a; [ -n \"$BRAINTRUST_PROJECT_ID\" ] || { echo 'Missing BRAINTRUST_PROJECT_ID' >&2; exit 1; }; bt functions push scorers/push.ts --if-exists replace"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0"
+  },
+  "dependencies": {
+    "braintrust": "^3.37.2",
+    "parse5": "^8.0.1",
+    "zod": "^4.6.7"
   }
 }
