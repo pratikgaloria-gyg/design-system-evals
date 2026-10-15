@@ -8,6 +8,7 @@
 import braintrust from "braintrust";
 import { z } from "zod";
 import { a11yHygiene } from "./a11yHygiene.js";
+import { tokenCompliance } from "./tokenCompliance.js";
 
 // This module is evaluated twice: locally at push time (BRAINTRUST_PROJECT_ID set by `npm run push:scorers`,
 // which refuses to run without it), and again inside Braintrust's runtime whenever the scorer runs, where
@@ -21,4 +22,14 @@ project.scorers.create({
   description: "Static accessibility checks on output.rendered_html (UDS-530). Null when there is nothing to score.",
   parameters: z.object({ output: z.any() }),
   handler: async ({ output }) => a11yHygiene({ output }),
+});
+
+// TODO(UDS-528): pass the versioned compass-pcl `tokens.json` here once it is exported (shared epic prerequisite).
+// Until then any var(--...) and `.t-*` class counts as compliant and `token_list_version` is null.
+project.scorers.create({
+  name: "token_compliance",
+  slug: "token-compliance",
+  description: "Share of colour, typography and spacing values in inline styles that use Compass tokens (UDS-528). Null when there is nothing to score.",
+  parameters: z.object({ output: z.any() }),
+  handler: async ({ output }) => tokenCompliance({ output }),
 });
