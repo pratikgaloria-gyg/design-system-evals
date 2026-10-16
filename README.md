@@ -87,10 +87,6 @@ npm run ingest -- run --page 4927390328   # one page
 
 ## token_compliance token manifest (UDS-528)
 
-`scorers/tokenCompliance.ts` only reads a `TokenManifest` (`scorers/tokenManifest.ts`): named tokens with resolved values, plus composite styles (typography) matched by value. Adapters in `adapters/` produce it from the current token source; swapping the source means writing a new adapter, not changing the scorer.
+`scorers/tokenCompliance.ts` reads a `TokenManifest` (schema in `scorers/tokenManifest.ts`): named tokens with resolved values, plus composite styles (typography) matched by value. `scorers/tokens.manifest.json` is currently a small hand-written example.
 
-```
-npm run build:tokens -- <path-to-compass-repo>   # writes scorers/tokens.manifest.json (commit it, then npm run push:scorers)
-```
-
-Current adapter: `adapters/compassRepo.ts` (getyourguide/compass, `packages/compass/styles`). Not covered: palette primitives (SCSS-only there), radius, legacy typography, and anything the Claude Design project generates itself (e.g. `--palette-*`).
+TODO: emit the real manifest into this repo from the token source of truth (likely a style-dictionary-style build) and commit/push it with the scorer. Any converter needed between that output and this schema belongs in a new `adapters/` folder; none exists yet.

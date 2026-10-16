@@ -26,9 +26,8 @@ project.scorers.create({
   handler: async ({ output }) => a11yHygiene({ output }),
 });
 
-// The manifest is generated from the compass repo by `npm run build:tokens -- <compass checkout>` and committed, so it is
-// bundled into the pushed scorer. Re-run, commit and re-push when compass tokens change; `token_list_version` in each score
-// says which version was used. When a shared token spec exists, write a new adapter in adapters/; this file stays as is.
+// TODO(UDS-528): scorers/tokens.manifest.json is a hand-written EXAMPLE. Replace it with the manifest emitted from the token
+// source of truth (see README); this file only reads it at push time. `token_list_version` in each score records which one was used.
 const manifest = parseManifest(manifestJson);
 project.scorers.create({
   name: "token_compliance",
