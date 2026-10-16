@@ -84,3 +84,9 @@ npm run ingest -- run --page 4927390328   # one page
 - [ ] Phase 2 — `run` ingests all pilot pages; skill v0.5 writes the page on close
 - [ ] Phase 3 — cron sweep, service token, idle/abandoned tagging, alerts
 - [ ] Phase 4 — UDS-467 verifier alongside the self-report
+
+## token_compliance token manifest (UDS-528)
+
+`scorers/tokenCompliance.ts` reads a `TokenManifest` (schema in `scorers/tokenManifest.ts`): named tokens with resolved values, plus composite styles (typography) matched by value. `scorers/tokens.manifest.json` is currently a small hand-written example.
+
+TODO: emit the real manifest into this repo from the token source of truth (likely a style-dictionary-style build) and commit/push it with the scorer. Any converter needed between that output and this schema belongs in a new `adapters/` folder; none exists yet.

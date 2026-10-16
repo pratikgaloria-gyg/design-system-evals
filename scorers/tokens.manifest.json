@@ -1,0 +1,79 @@
+{
+  "version": "example-0",
+  "source": "hand-written example, replace with the emitted manifest (see README)",
+  "tokens": [
+    {
+      "name": "--background-primary",
+      "category": "color",
+      "tier": "semantic",
+      "values": [
+        "#ffffff",
+        "#191b20"
+      ]
+    },
+    {
+      "name": "--label-primary",
+      "category": "color",
+      "tier": "semantic",
+      "values": [
+        "#1a2b49",
+        "#ffffff"
+      ]
+    },
+    {
+      "name": "--surface-secondary",
+      "category": "color",
+      "tier": "semantic",
+      "values": [
+        "#ebeef1",
+        "#31343d"
+      ]
+    },
+    {
+      "name": "--spacing-1x",
+      "category": "spacing",
+      "tier": "semantic",
+      "values": [
+        "8px"
+      ]
+    },
+    {
+      "name": "--spacing-2x",
+      "category": "spacing",
+      "tier": "semantic",
+      "values": [
+        "16px"
+      ]
+    },
+    {
+      "name": "--effect-elevation-sm",
+      "category": "shadow",
+      "tier": "semantic"
+    },
+    {
+      "name": "--font-family",
+      "category": "type",
+      "tier": "semantic"
+    }
+  ],
+  "styles": [
+    {
+      "name": "heading-md",
+      "category": "type",
+      "match": {
+        "font-size": "28px",
+        "line-height": "1.2",
+        "font-weight": "750"
+      }
+    },
+    {
+      "name": "text-regular-sm",
+      "category": "type",
+      "match": {
+        "font-size": "16px",
+        "line-height": "1.5",
+        "font-weight": "425"
+      }
+    }
+  ]
+}
